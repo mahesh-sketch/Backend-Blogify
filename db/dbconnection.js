@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
-async function dbConnection(path) {
+async function dbConnection(paths) {
   try {
-    await mongoose.connect(path);
+    await mongoose.connect(paths);
     console.log("Db is Connected");
   } catch (error) {
     console.log("Error is:", error);
