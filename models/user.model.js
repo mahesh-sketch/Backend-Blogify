@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 import { createHmac, randomBytes } from "crypto";
+import authService from "../services/auth.js";
 const userSchema = Schema(
   {
     fullName: {
@@ -22,6 +23,7 @@ const userSchema = Schema(
     profileImageURL: {
       type: String,
       default: "/images/default.png",
+      required: false,
     },
     role: {
       type: String,
@@ -48,20 +50,24 @@ userSchema.pre("save", function (next) {
   next();
 });
 
-//Matching the Hashed password for Signin
-userSchema.static("matchPassword", async function (email, password) {
-  const user = await this.findOne({ email });
-  if (!user) throw new Error("User not Found");
+//Matching the Hashed password for Signin with Generated Token
+userSchema.static(
+  "matchPasswordAndGenerateToken",
+  async function (email, password) {
+    const user = await this.findOne({ email });
+    if (!user) throw new Error("User not Found");
 
-  const salt = user.salt;
-  const hashdPassword = user.password;
-  const useProvideHash = createHmac("sha256", salt)
-    .update(password)
-    .digest("hex");
+    const salt = user.salt;
+    const hashdPassword = user.password;
+    const useProvideHash = createHmac("sha256", salt)
+      .update(password)
+      .digest("hex");
 
-  if (hashdPassword !== useProvideHash) throw new Error("Incorrect Password");
-  return user;
-});
+    if (hashdPassword !== useProvideHash) throw new Error("Incorrect Password");
+    const token = authService.createTokenForUser(user);
+    return token;
+  }
+);
 
 const User = model("User", userSchema);
 
