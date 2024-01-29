@@ -1,29 +1,48 @@
 import express from "express";
+import handleSignin from "../controllers/signin.controller.js";
+import multer from "multer";
 import User from "../models/user.model.js";
-const router = express.Router();
+import path from "path";
+const userRouter = express.Router();
 
-router.get("/signin", (req, res) => {
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.resolve(`./public/profiles/`));
+  },
+  filename: function (req, file, cb) {
+    const fileName = `${Date.now()}-${file.originalname}`;
+    cb(null, fileName);
+  },
+});
+
+const uploads = multer({ storage: storage });
+
+userRouter.get("/signin", (req, res) => {
   return res.render("signin");
 });
 
-router.get("/signup", (req, res) => {
+userRouter.get("/signup", (req, res) => {
   return res.render("signup");
 });
 
-router.post("/signin", async (req, res) => {
-  const { email, password } = req.body;
-  await User.matchPassword(email, password);
-  return res.redirect("/");
-});
+userRouter.post("/signin", handleSignin);
 
-router.post("/signup", async (req, res) => {
+userRouter.post("/signup", uploads.single("profileImage"), async (req, res) => {
   const { fullName, email, password } = req.body;
+  if (!req.file) {
+    return res.status(400).send("No file uploaded.");
+  }
   await User.create({
     fullName,
     email,
     password,
+    profileImageURL: `/profiles/${req.file.filename}`,
   });
   return res.redirect("/");
 });
 
-export default router;
+userRouter.get("/logout", (req, res) => {
+  res.clearCookie("token").redirect("/");
+});
+
+export default userRouter;
