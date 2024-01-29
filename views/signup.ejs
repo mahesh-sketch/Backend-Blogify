@@ -7,8 +7,17 @@
 <body data-bs-theme="dark">
     <%- include('./partials/navbar/navbar') %>
     <div class="container mt-4">
-      <form action="/users/signup" method="post">
+      <form action="/users/signup" method="post" enctype="multipart/form-data">
         <div class="mb-3">
+          <div class="d-flex justify-content-center mb-4">
+            <img id="frame" src="https://mdbootstrap.com/img/Photos/Others/placeholder-avatar.jpg"
+            class="rounded-circle" style="width: 200px; height: 200px; object-fit: cover;" alt="example placeholder" />
+        </div>
+      <div class="mb-3">
+        <label for="coverImage" class="form-label">Profile Image</label>
+        <input type="file" class="form-control" id="profileImage" name="profileImage" aria-describedby="profileImage" onchange="preview(event)" />
+      </div>
+
           <label for="fullName" class="form-label">Full Name</label>
           <input
             type="text"
@@ -16,7 +25,7 @@
             id="fullName"
             name="fullName"
             aria-describedby="fullName"
-          />
+          /> 
         </div>
         <div class="mb-3">
           <label for="exampleInputEmail1" class="form-label"
@@ -46,6 +55,11 @@
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
     </div>
+    <script>
+      function preview(event){
+        frame.src = URL.createObjectURL(event.target.files[0]);
+      }
+    </script>
     <%- include('./partials/script') %>
 </body>
 </html>
